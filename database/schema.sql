@@ -52,4 +52,5 @@ INSERT INTO users (username, email, password_hash) VALUES
 
 INSERT INTO products (name, description, price, stock, image_url) VALUES
 ('Shampoo Nutritivo', 'Shampoo para cabello seco y maltratado', 25000.00, 30, 'https://ejemplo.com/shampoo.jpg'),
-('Acondicionador Reparador', 'Acondicionador con keratina', 27000.00, 25, 'https://ejemplo.com/acondicionador.jpg');
+('Acondicionador Reparador', 'A
+condicionador con keratina', 27000.00, 25, 'https://ejemplo.com/acondicionador.jpg');
