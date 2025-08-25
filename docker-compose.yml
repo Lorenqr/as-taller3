@@ -9,7 +9,7 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: taller3
+      POSTGRES_DB: tienda_db
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
@@ -19,7 +19,7 @@ services:
     depends_on:
       - database
     environment:
-      DATABASE_URL: postgres://postgres:postgres@database:5432/taller3
+      DATABASE_URL: postgresql://postgres:postgres@database:5432/tienda_db
     ports:
       - "8000:8000"
 
@@ -28,6 +28,9 @@ services:
     container_name: as-webapp
     depends_on:
       - api
+    environment:
+      API_URL: http://api:8000
+
     ports:
       - "5000:5000"
 

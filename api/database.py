@@ -6,7 +6,7 @@ import os
 # TODO: Configurar la URL de la base de datos desde variables de entorno
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
-    "postgresql://tienda_user:tienda_password@database:5432/tienda_db"
+    "postgresql://postgres:postgres@database:5432/tienda_db"
 )
 
 # TODO: Crear el engine de SQLAlchemy
