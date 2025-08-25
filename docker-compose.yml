@@ -1,54 +1,44 @@
-version: '3.8'
+version: "3.9"
 
 services:
-
   database:
     build: ./database
+    container_name: as-db
+    ports:
+      - "5432:5432"
     environment:
-      POSTGRES_DB: tienda_db
-      POSTGRES_USER: tienda_user
-      POSTGRES_PASSWORD: tienda_password
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: taller3
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    networks:
-      - tienda_network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U tienda_user -d tienda_db"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
   api:
     build: ./api
-    environment:
-      DATABASE_URL: postgresql://tienda_user:tienda_password@database:5432/tienda_db
+    container_name: as-api
     depends_on:
-      database:
-        condition: service_healthy
-    networks:
-      - tienda_network
+      - database
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@database:5432/taller3
+    ports:
+      - "8000:8000"
 
   webapp:
     build: ./webapp
-    environment:
-      API_URL: http://api:8000
+    container_name: as-webapp
     depends_on:
       - api
-    networks:
-      - tienda_network
+    ports:
+      - "5000:5000"
 
   proxy:
     build: ./proxy
+    container_name: as-proxy
+    depends_on:
+      - api
+      - webapp
     ports:
       - "80:80"
-    depends_on:
-      - webapp
-    networks:
-      - tienda_network
 
 volumes:
   postgres_data:
-
-networks:
-  tienda_network:
-    driver: bridge

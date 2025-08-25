@@ -1,10 +1,10 @@
 # Database
 
-FROM postgres:15-alpine
+FROM postgres:15
 
-# Copiar scripts de inicialización
-COPY init.sql /docker-entrypoint-initdb.d/01-init.sql
-COPY schema.sql /docker-entrypoint-initdb.d/02-schema.sql
+ENV POSTGRES_USER=postgres
+ENV POSTGRES_PASSWORD=postgres
+ENV POSTGRES_DB=taller3
 
-# Exponer el puerto
-EXPOSE 5432
+COPY init.sql /docker-entrypoint-initdb.d/
+COPY schema.sql /docker-entrypoint-initdb.d/
