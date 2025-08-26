@@ -1,10 +1,8 @@
 # carts.py
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
-from database import get_db
-from models.cart import Cart, CartItem
-from models.product import Product
-from models.user import User
+from sqlalchemy import Column, Integer, ForeignKey, DateTime, Numeric
+from sqlalchemy.sql import func
+from sqlalchemy.orm import relationship
+from database import Base
 
 router = APIRouter(prefix="/carts", tags=["carts"])
 
