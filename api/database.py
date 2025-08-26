@@ -4,10 +4,7 @@ from sqlalchemy.orm import sessionmaker
 import os
 
 # TODO: Configurar la URL de la base de datos desde variables de entorno
-DATABASE_URL = os.getenv(
-    "DATABASE_URL",
-    "postgresql://postgres:postgres@database:5432/tienda_db"
-)
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@database:5432/tienda_db")
 
 # TODO: Crear el engine de SQLAlchemy
 engine = create_engine(DATABASE_URL)
