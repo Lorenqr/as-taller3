@@ -18,12 +18,12 @@ services:
     build: ./api
     container_name: tienda-api
     ports:
-      - "5000:5000"
+      - "8000:8000"
     environment:
-      DATABASE_URL: postgresql://tienda_db:password123@database:5432/tienda_db
+      DATABASE_URL: postgresql://postgres:postgres@database:5432/tienda_db
       SECRET_KEY: mi_clave_secreta_api
     volumes:
-      - ./api:/app
+      - ./api:/app/api
     depends_on:
       - database
     networks:
@@ -34,9 +34,9 @@ services:
     build: ./webapp
     container_name: tienda-webapp
     ports:
-      - "8000:8000"
+      - "5000:5000"
     environment:
-      API_URL: http://api:5000
+      API_URL: "http://api:8000/api/v1"
       FLASK_ENV: production
       SECRET_KEY: mi_clave_secreta_webapp
     volumes:
