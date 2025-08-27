@@ -1,93 +1,88 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from database import get_db
+from api.database import get_db
 from models.cart import Cart, CartItem
-from models.user import User
-from models.product import Product
-
-router = APIRouter()
 
 
-USER_ID = 1
+router = APIRouter(prefix="/carts", tags=["carts"])
 
 
-@router.get("/")
-async def get_user_cart(db: Session = Depends(get_db)):
-    # TODO: Implementar obtener carrito del usuario
-    cart = db.query(Cart).filter(Cart.user_id == USER_ID).first()
+# Crear carrito
+@router.post("/")
+def create_cart(user_id: int, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+
+    new_cart = Cart(user_id=user_id)
+    db.add(new_cart)
+    db.commit()
+    db.refresh(new_cart)
+    return {"id": new_cart.id, "user_id": new_cart.user_id}
+
+
+# Agregar producto al carrito
+@router.post("/{cart_id}/items")
+def add_item(cart_id: int, product_id: int, quantity: int, db: Session = Depends(get_db)):
+    cart = db.query(Cart).filter(Cart.id == cart_id).first()
     if not cart:
-        cart = Cart(user_id=USER_ID)
-        db.add(cart)
-        db.commit()
-        db.refresh(cart)
-    return {"cart_id": cart.id, "items": cart.items}
-
-
-@router.post("/items")
-async def add_item_to_cart(product_id: int, quantity: int, db: Session = Depends(get_db)):
-    # TODO: Implementar agregar item al carrito
-    cart = db.query(Cart).filter(Cart.user_id == USER_ID).first()
-    if not cart:
-        cart = Cart(user_id=USER_ID)
-        db.add(cart)
-        db.commit()
-        db.refresh(cart)
+        raise HTTPException(status_code=404, detail="Carrito no encontrado")
 
     product = db.query(Product).filter(Product.id == product_id).first()
     if not product:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Producto no encontrado")
+        raise HTTPException(status_code=404, detail="Producto no encontrado")
 
-    item = db.query(CartItem).filter(CartItem.cart_id == cart.id, CartItem.product_id == product_id).first()
-    if item:
-        item.quantity += quantity
-    else:
-        item = CartItem(cart_id=cart.id, product_id=product_id, quantity=quantity)
-        db.add(item)
+    if product.stock < quantity:
+        raise HTTPException(status_code=400, detail="Stock insuficiente")
 
+    new_item = CartItem(cart_id=cart_id, product_id=product_id, quantity=quantity)
+    db.add(new_item)
     db.commit()
-    db.refresh(item)
-    return {"message": "Producto agregado al carrito", "item": item}
+    db.refresh(new_item)
+    return new_item
 
 
-@router.put("/items/{item_id}")
-async def update_cart_item(item_id: int, quantity: int, db: Session = Depends(get_db)):
-    # TODO: Implementar actualizar cantidad de item
-    item = db.query(CartItem).filter(CartItem.id == item_id).first()
+# Listar carrito con items
+@router.get("/{cart_id}")
+def get_cart(cart_id: int, db: Session = Depends(get_db)):
+    cart = db.query(Cart).filter(Cart.id == cart_id).first()
+    if not cart:
+        raise HTTPException(status_code=404, detail="Carrito no encontrado")
+
+    return {
+        "id": cart.id,
+        "user_id": cart.user_id,
+        "items": [
+            {
+                "id": item.id,
+                "product_id": item.product_id,
+                "quantity": item.quantity
+            } for item in cart.items
+        ]
+    }
+
+
+# Eliminar item del carrito
+@router.delete("/{cart_id}/items/{item_id}")
+def delete_item(cart_id: int, item_id: int, db: Session = Depends(get_db)):
+    item = db.query(CartItem).filter(
+        CartItem.id == item_id, CartItem.cart_id == cart_id
+    ).first()
     if not item:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item no encontrado")
-
-    if quantity <= 0:
-        db.delete(item)
-        db.commit()
-        return {"message": "Item eliminado porque la cantidad era <= 0"}
-
-    item.quantity = quantity
-    db.commit()
-    db.refresh(item)
-    return {"message": "Item actualizado", "item": item}
-
-
-@router.delete("/items/{item_id}")
-async def remove_item_from_cart(item_id: int, db: Session = Depends(get_db)):
-    # TODO: Implementar remover item del carrito
-    item = db.query(CartItem).filter(CartItem.id == item_id).first()
-    if not item:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item no encontrado")
+        raise HTTPException(status_code=404, detail="Item no encontrado")
 
     db.delete(item)
     db.commit()
-    return {"message": "Item eliminado del carrito"}
+    return {"detail": "Item eliminado correctamente"}
 
 
-@router.delete("/")
-async def clear_cart(db: Session = Depends(get_db)):
-    # TODO: Implementar limpiar carrito
-    cart = db.query(Cart).filter(Cart.user_id == USER_ID).first()
+# Vaciar carrito
+@router.delete("/{cart_id}/clear")
+def clear_cart(cart_id: int, db: Session = Depends(get_db)):
+    cart = db.query(Cart).filter(Cart.id == cart_id).first()
     if not cart:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Carrito no encontrado")
+        raise HTTPException(status_code=404, detail="Carrito no encontrado")
 
-    for item in cart.items:
-        db.delete(item)
-
+    db.query(CartItem).filter(CartItem.cart_id == cart_id).delete()
     db.commit()
-    return {"message": "Carrito vaciado correctamente"}
+    return {"detail": "Carrito vaciado correctamente"}

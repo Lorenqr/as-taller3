@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Numeric, DateTime
+from sqlalchemy import Column, Integer, String, Numeric, DateTime, Text
 from sqlalchemy.sql import func
 from api.database import Base
 
@@ -13,6 +13,3 @@ class Product(Base):
     stock = Column(Integer, default=0)
     image_url = Column(String(255))
     created_at = Column(DateTime, default=func.now())
-    
-    def __repr__(self):
-        return f"<Product(id={self.id}, name='{self.name}', price={self.price}, stock={self.stock})>"

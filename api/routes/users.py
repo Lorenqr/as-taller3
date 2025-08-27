@@ -1,13 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from database import get_db
 from models.user import User
-from passlib.context import CryptContext
 
 router = APIRouter()
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
 
 @router.post("/register")
 async def register_user(username: str, email: str, password: str, db: Session = Depends(get_db)):

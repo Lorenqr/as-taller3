@@ -14,12 +14,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copiar código de la aplicación
 COPY . .
 
-
-RUN touch api/__init__.py
-
 # Exponer el puerto
 EXPOSE 8000
 
 # Ejecutar Uvicorn como módulo para soportar imports relativos
-CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload", "--app-dir", "/app"]
 
